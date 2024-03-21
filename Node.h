@@ -15,11 +15,9 @@ public:
     void print()const {
         cout << data << "->";
     }
-    friend ofstream& operator<< (ofstream & out, const Node & obj);
+    friend ostream& operator<< (ostream& out, const Node & obj)
+    {
+        out << obj.data << string("->");
+        return out;
+    }
 };
-
-ofstream& operator<<(ofstream& out, const Node& obj)
-{
-    out << obj.data << string("->");
-    return out;
-}

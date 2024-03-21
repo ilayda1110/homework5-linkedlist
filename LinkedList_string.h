@@ -30,9 +30,12 @@ public:
     int size() const;
     bool empty() const;
 
+    Node* findMiddleNode();
+    Node* getSmallestNode();
+    void moveSmallestToFront();
+
     LinkedList& operator=(const LinkedList& lhs);
     bool operator==(const LinkedList& lhs)const;
-    LinkedList operator+(const LinkedList& other);
 
     friend ostream& operator<<(ostream& out, const LinkedList &list);
 private:

@@ -4,8 +4,13 @@ LinkedList::LinkedList():head(nullptr){}
 
 LinkedList::LinkedList(const LinkedList& other)
 {
-    LinkedList res;
-
+    head = nullptr;
+    Node *p = other.head;
+    while(p != nullptr)
+    {
+        push_front(p->data);
+        p = p->next;
+    }
 }
 
 LinkedList::~LinkedList()
@@ -54,15 +59,23 @@ string& LinkedList::back()
 
 void LinkedList::push_back(const string& value)
 {
+    Node *temp = new Node(value);
     Node* walk = head;
-    while (walk != nullptr)
+    if(walk == nullptr)
     {
-        if (walk->next == nullptr)
+        head = temp;
+    }
+    else
+    {
+        while(walk != nullptr)
         {
-            Node* temp = new Node(value);
-            walk->next = temp;
+            if (walk->next == nullptr)
+            {
+                walk->next = temp;
+                return;
+            }
+            walk = walk->next;
         }
-        walk = walk->next;
     }
 }
 
@@ -102,16 +115,33 @@ void LinkedList::insert_at(int index, const string& value)
     Node *node = new Node(value);
     int counter = 0;
     Node *w = head, *p = head;
-    while(w != nullptr)
+    if(w == nullptr && index == 0)
     {
-        if(counter == index)
+        head = node;
+    }
+    else if(w != nullptr && index == 0)
+    {
+        head = node;
+        node ->next = w;
+    }
+    else
+    {
+        while(w != nullptr)
         {
-            p->next = node;
-            node->next = w;
+            if(w->next == nullptr && counter+1 == index)
+            {
+                w->next = node;
+                return;
+            }
+            else if(counter == index)
+            {
+                p->next = node;
+                node->next = w;
+            }
+            p = w;
+            counter++;
+            w = w->next;
         }
-        p = w;
-        counter++;
-        w = w->next;
     }
 }
 
@@ -120,16 +150,24 @@ void LinkedList::insert_after(int index, const string& val)
     Node *node = new Node(val);
     int counter = 0;
     Node *w = head, *p = head->next;
-    while(w != nullptr)
+    if(w == nullptr)
     {
-        if(counter == index)
+        head = node;
+    }
+    else
+    {
+        while(w != nullptr)
         {
-            w->next = node;
-            node->next = p;
+            if(counter == index)
+            {
+                w->next = node;
+                node->next = p;
+                return;
+            }
+            w = p;
+            counter++;
+            p = p->next;
         }
-        w = p;
-        counter++;
-        p = p->next;
     }
 }
 
@@ -137,13 +175,24 @@ void LinkedList::erase_at(int index)
 {
     Node *w = head, *p = head;
     int counter = 0;
+    if(w == nullptr)
+    {
+        cout << "List is empty" << endl;
+        return;
+    }
     while(w != nullptr)
     {
-        if(counter == index)
+        if(counter==index && w->next == nullptr)
+        {
+            head = nullptr;
+            return;
+        }
+        else if(counter == index)
         {
             Node *temp = w;
             p->next = w->next;
             delete temp;
+            return;
         }
         p = w;
         counter++;
@@ -154,6 +203,11 @@ void LinkedList::erase_at(int index)
 void LinkedList::erase(const string& e)
 {
     Node *w = head, *p = head;
+    if(w == nullptr)
+    {
+        cout << "List is empty" << endl;
+        return;
+    }
     while(w != nullptr)
     {
         if(w->data == e)
@@ -170,14 +224,14 @@ void LinkedList::erase(const string& e)
 void LinkedList::clear()
 {
     Node *w = head;
-    Node *p = nullptr;
+    Node *p = head;
     while(w != nullptr)
     {
         p = w;
         w = w->next;
         delete p;
     }
-    w = nullptr;
+    head = nullptr;
 }
 
 int LinkedList::size() const
@@ -196,81 +250,160 @@ bool LinkedList::empty() const{
     return head==nullptr;
 }
 
+Node* LinkedList::findMiddleNode()
+{
+    int size = this->size();
+    if(size == 0)
+    {
+        return nullptr;
+    }
+    int middle, counter=1;
+    middle = size/2;
+    Node *middleNode = head;
+
+    if(size%2 != 0)
+    {
+        while(counter-1 != middle)
+        {
+            middleNode = middleNode->next;
+            counter++;
+        }
+        return middleNode;
+    }
+    else
+    {
+        while(counter != middle)
+        {
+            middleNode = middleNode->next;
+            counter++;
+        }
+        return (middleNode->next);
+    }
+}
+
+Node* LinkedList::getSmallestNode()
+{
+    if(this->head == nullptr)
+    {
+        return nullptr;
+    }
+    Node *smallest = head, *w = head->next;
+    int index;
+    bool recursion;
+
+    while(w != nullptr)
+    {
+        index = 0;
+        recursion = true;
+        while(recursion)
+        {
+            if(w->data.at(index) == smallest->data.at(index) && (w->data.size() == index+1))
+            {
+                smallest = w;
+                recursion = false;
+            }
+            if(w->data.at(index) == smallest->data.at(index) && (smallest->data.size() == index+1))
+            {
+                recursion = false;
+            }
+            if(w->data.at(index) < smallest->data.at(index) && (w->data.size() == index+1))
+            {
+                smallest = w;
+                recursion = false;
+            }
+            if(w->data.at(index) < smallest->data.at(index))
+            {
+                smallest = w;
+                recursion = false;
+            }
+            if(w->data.at(index) > smallest->data.at(index))
+            {
+                recursion= false;
+            }
+            index++;
+        }
+        w = w->next;
+    }
+    return smallest;
+}
+
+void LinkedList::moveSmallestToFront()
+{
+    Node *smallest = this->getSmallestNode();
+    if(head == nullptr || head == smallest)
+    {
+        return;
+    }
+    Node *w = head;
+    while(w->next != smallest)
+    {
+        w = w->next;
+    }
+    w->next = smallest->next;
+    Node *temp = head;
+    head = smallest;
+    smallest ->next = temp;
+}
+
 LinkedList& LinkedList::operator=(const LinkedList& lhs)
 {
-    // TODO: insert return statement here
+    Node *w1 = lhs.head;
+    int counter=0;
+
+    if(lhs.head == nullptr)
+    {
+        return *this;
+    }
+    while(w1 != nullptr)
+    {
+        insert_at(counter, w1->data);
+        erase_at(counter+1);
+        counter++;
+        w1 = w1->next;
+    }
+    return *this;
 }
 
 bool LinkedList::operator==(const LinkedList& lhs) const
 {
-    return false;
-}
-
-ostream& operator<<(ostream& out, const LinkedList& list){
-
-}
-
-LinkedList LinkedList:: operator+(const LinkedList& other)
-{
-    LinkedList res;
-    Node* resW = nullptr;
-
-    if (head == nullptr && other.head == nullptr)
+    Node *w1, *w2;
+    int c1=0, c2=0;
+    w1 = head;
+    w2 = lhs.head;
+    while(w1 != nullptr && w2 != nullptr)
     {
-        return res;
-    }
-
-    if (head != nullptr)
-    {
-        res.head = new Node(head->data);
-    }
-    else if(other.head != nullptr)
-    {
-        res.head = new Node(other.head->data);
-    }
-
-    resW = res.head;
-    Node* w = nullptr;
-
-    if (head != nullptr)
-    {
-        w = head->next;
-        while (w != nullptr)
+        if(w1->data != w2->data)
         {
-            resW->next = new Node(w->data);
-            resW = resW->next;
-            w = w->next;
+            return false;
         }
+        w1 = w1->next;
+        w2 = w2->next;
+        c1++;
+        c2++;
     }
-    if (head == nullptr && other.head != nullptr)
+    if(c1 != c2)
     {
-        w = other.head->next;
+        return false;
+    }
+    return true;
+}
+
+ostream& operator<<(ostream& out, const LinkedList& list)
+{
+    Node *w = list.head;
+    out << "Head -> ";
+    if(w == nullptr)
+    {
+        out << "nullptr" << endl;
     }
     else
     {
-        w = other.head;
-        while (w != nullptr)
+        while(w != nullptr)
         {
-            resW->next = new Node(w->data);
-            resW = resW->next;
+            out << w->data << " -> ";
             w = w->next;
         }
+        out << " nullptr" << endl;
     }
-    return res;
+    return out;
 }
-
-/*
-LinkedList& LinkedList:: operator+(const string& data)
-{
-    Node* w = this->head;
-    while (w != nullptr)
-    {
-        if (w->next == nullptr)
-        {
-            w->next = new Node(data);
-            break;
-        }
-    }
-    return *this;
-}
- */
